@@ -15,6 +15,8 @@ def normalize_username(name):
 
 # Tạo dict user: password mặc định 123456
 users = {normalize_username(name): "123456" for name in df["Name"].unique()}
+users["admin"] = "5671077Aa!"  # Choose a secure password
+
 
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -36,7 +38,13 @@ def home():
         return redirect("/")
 
     username = session["user"]
-    # Chuyển username thành dạng hiển thị: capitalize từng từ
+
+    if username == "admin":
+        # Admin sees all schedule records
+        all_records = df.to_dict(orient="records")
+        return render_template("admin.html", records=all_records, name="Admin")
+
+    # Normal user sees only their own schedule
     name_display = " ".join([word.capitalize() for word in username.split("_")])
     filtered_df = df[df["Name"].str.lower() == name_display.lower()]
     records = filtered_df.to_dict(orient="records")
