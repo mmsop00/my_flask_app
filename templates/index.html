@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schedule - {{ name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h2>Welcome, {{ name }}</h2>
+    <a href="/logout" class="logout">Logout</a>
+    <table>
+      <tr>
+        <th>Date</th>
+        <th>Name</th>
+        <th>Shift</th>
+        <th>Start Time</th>
+        <th>End Time</th>
+      </tr>
+      {% for row in records %}
+      <tr>
+        <td>{{ row['Date'] }}</td>
+        <td>{{ row['Name'] }}</td>
+        <td>{{ row['Shift'] }}</td>
+        <td>{{ row['Start_time'] }}</td>
+        <td>{{ row['End_time'] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</body>
+</html>
