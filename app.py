@@ -1,10 +1,11 @@
 import os
 from flask import Flask, render_template, request, redirect, session
 import pandas as pd
+from datetime import datetime  # ✅ Thêm để xử lý ngày
 
 app = Flask(__name__)
 # Lấy secret_key từ biến môi trường, fallback nếu chạy local
-app.secret_key = os.environ.get("SECRET_KEY", "fallback-key")  
+app.secret_key = os.environ.get("SECRET_KEY", "fallback-key")
 
 # Đọc file Excel
 df = pd.read_excel("schedule_october_all.xlsx")
@@ -15,8 +16,7 @@ def normalize_username(name):
 
 # Tạo dict user: password mặc định 123456
 users = {normalize_username(name): "123456" for name in df["Name"].unique()}
-users["admin"] = "5671077Aa!"  # Choose a secure password
-
+users["admin"] = "5671077Aa!"  # Mật khẩu admin
 
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -32,6 +32,7 @@ def login():
 
     return render_template("login.html")
 
+
 @app.route("/home")
 def home():
     if "user" not in session:
@@ -39,22 +40,37 @@ def home():
 
     username = session["user"]
 
-    if username == "admin":
-        # Admin sees all schedule records
-        all_records = df.to_dict(orient="records")
-        return render_template("admin.html", records=all_records, name="Admin")
+    # ✅ Lấy ngày hiện tại
+    today = datetime.now().date()
 
-    # Normal user sees only their own schedule
+    # ✅ Chuyển cột Date trong file Excel thành kiểu date
+    filtered_df = df.copy()
+    filtered_df["Date"] = pd.to_datetime(filtered_df["Date"], errors="coerce").dt.date
+
+    if username == "admin":
+        # ✅ Admin xem tất cả lịch từ ngày hôm nay trở đi
+        upcoming_df = filtered_df[filtered_df["Date"] >= today]
+        records = upcoming_df.to_dict(orient="records")
+        return render_template("admin.html", records=records, name="Admin")
+
+    # ✅ Người dùng thường xem lịch riêng của mình từ hôm nay trở đi
     name_display = " ".join([word.capitalize() for word in username.split("_")])
-    filtered_df = df[df["Name"].str.lower() == name_display.lower()]
-    records = filtered_df.to_dict(orient="records")
+
+    upcoming_df = filtered_df[
+        (filtered_df["Name"].str.lower() == name_display.lower())
+        & (filtered_df["Date"] >= today)
+    ]
+
+    records = upcoming_df.to_dict(orient="records")
 
     return render_template("index.html", records=records, name=name_display)
+
 
 @app.route("/logout")
 def logout():
     session.pop("user", None)
     return redirect("/")
+
 
 if __name__ == "__main__":
     # Port 10000 chỉ để test local, Render sẽ dùng 10000 hoặc PORT env
