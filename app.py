@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, session
 import pandas as pd
-from datetime import datetime  # ✅ Thêm để xử lý ngày
+from datetime import datetime, timedelta  # ✅ thêm timedelta để trừ ngày
 
 app = Flask(__name__)
 # Lấy secret_key từ biến môi trường, fallback nếu chạy local
@@ -40,25 +40,26 @@ def home():
 
     username = session["user"]
 
-    # ✅ Lấy ngày hiện tại
+    # ✅ Lấy ngày hôm nay và trừ đi 1 ngày
     today = datetime.now().date()
+    start_date = today - timedelta(days=1)
 
-    # ✅ Chuyển cột Date trong file Excel thành kiểu date
+    # ✅ Chuyển cột Date thành kiểu date để so sánh
     filtered_df = df.copy()
     filtered_df["Date"] = pd.to_datetime(filtered_df["Date"], errors="coerce").dt.date
 
     if username == "admin":
-        # ✅ Admin xem tất cả lịch từ ngày hôm nay trở đi
-        upcoming_df = filtered_df[filtered_df["Date"] >= today]
+        # ✅ Admin xem lịch từ hôm qua trở đi
+        upcoming_df = filtered_df[filtered_df["Date"] >= start_date]
         records = upcoming_df.to_dict(orient="records")
         return render_template("admin.html", records=records, name="Admin")
 
-    # ✅ Người dùng thường xem lịch riêng của mình từ hôm nay trở đi
+    # ✅ Người dùng thường xem lịch riêng từ hôm qua trở đi
     name_display = " ".join([word.capitalize() for word in username.split("_")])
 
     upcoming_df = filtered_df[
         (filtered_df["Name"].str.lower() == name_display.lower())
-        & (filtered_df["Date"] >= today)
+        & (filtered_df["Date"] >= start_date)
     ]
 
     records = upcoming_df.to_dict(orient="records")
