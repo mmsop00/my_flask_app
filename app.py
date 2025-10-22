@@ -42,7 +42,7 @@ def home():
 
     # ✅ Lấy ngày hôm nay và trừ đi 1 ngày
     today = datetime.now().date()
-    start_date = today - timedelta(days=2)
+    start_date = today - timedelta(days=0)
 
     # ✅ Chuyển cột Date thành kiểu date để so sánh
     filtered_df = df.copy()
