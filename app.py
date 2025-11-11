@@ -8,7 +8,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "fallback-key")
 
 # Đọc file Excel
-df = pd.read_excel("schedule_october_all.xlsx")
+df = pd.read_excel("schedule_12_per_shift_all.xlsx")
 
 # Chuẩn hóa tên: gạch dưới và lowercase
 def normalize_username(name):
